@@ -3,9 +3,9 @@
     @description:
 
     @author: Zai Dium
-    @version: 1.0
-    @updated: "2022-10-21 15:57:13"
-    @revision: 426
+    @version: 1.2
+    @updated: "2022-10-21 16:07:17"
+    @revision: 24
     @localfile: ?defaultpath\Radio\?@name.lsl
     @license: ?
 
