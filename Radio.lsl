@@ -2,26 +2,38 @@
     @name: Radio
     @description:
 
+    @author: Zai Dium
     @version: 1.0
-    @updated: "2022-10-20 22:34:51"
-    @revision: 387
+    @updated: "2022-10-21 15:57:13"
+    @revision: 426
     @localfile: ?defaultpath\Radio\?@name.lsl
     @license: ?
 
     @ref:
 
     @notice:
+
+    Add this script and readme to your object
+    Add notecards for each genre name it with .list at the end, example "Country.list"
+    edit gene notecard add a list of url of streams, you can optional add name for each one before =, or just keep it as url
+    example:
+
+    My Name=http://blabla.com:8010/mystation1
+    http://blabla.com:8010/mystation2
 */
+
 //* settings
 
 //* variables
-string full_version = "Radio 1.1";
+string full_version = "Radio 1.2";
 
 key notecardQueryId;
 integer notecardLine;
 integer notecardIndex = 0;
-string notecardName = "Country";
+string notecardName = "";
+
 string radioStation = "";
+string radioGenre = "";
 
 list radioGenres = [];
 list radioNames = [];
@@ -38,7 +50,7 @@ list getMenuList(key id) {
     list l;
     if (menuTab == TAB_Home)
     {
-    	l += ["Stations", "Genre"];
+        l += ["Stations", "Genre"];
 
         if (id == llGetOwner())
         {
@@ -92,45 +104,55 @@ showDialog(key id)
 
 updateText()
 {
-    string s = "Genre: " + notecardName;
+    string s = "Genre: " + radioGenre;
     s += "\nStation: " + radioStation;
     llSetText(s, <1.0, 1.0, 1.0>, 1.0);
 }
 
 readNotecard(string name)
 {
-	if (name != "")
+    if (name != "")
     {
-	    notecardName = name;
+        notecardName = name + ".list";
         if (llGetInventoryKey(notecardName) != NULL_KEY)
         {
-		    radioNames = [];
+	        radioGenre = name;
+            radioNames = [];
             radioStations = [];
             notecardLine = 0;
             notecardIndex = 0;
+            llOwnerSay("Reading " + notecardName + "...");
             notecardQueryId = llGetNotecardLine(notecardName, notecardLine);
-    	}
+        }
     }
 }
 
-readGenre()
+readGenres()
 {
-	integer count = llGetInventoryNumber(INVENTORY_NOTECARD);
+	radioGenres = [];
+    integer count = llGetInventoryNumber(INVENTORY_NOTECARD);
     integer index = 0;
     while (index < count) {
-    	radioGenres += llGetInventoryName(INVENTORY_NOTECARD, index);
+    	string name = llGetInventoryName(INVENTORY_NOTECARD, index);
+	    if (llToLower(llGetSubString(name, -5, -1)) == ".list")
+        {
+	        name = llGetSubString(name, 0, -6);
+    	    radioGenres += name;
+        }
         index++;
     }
 }
 
 reset(){
-	readGenre();
-	readNotecard(llList2String(radioGenres, 0));
+    readGenres();
+    if (radioGenre == "")
+	    radioGenre = llList2String(radioGenres, 0);
+    readNotecard(radioGenre);
 }
 
 setRadioStation(string station)
 {
-	radioStation = station;
+    radioStation = station;
     llShout(0, "Radio stream now: " + station);
     llSetParcelMusicURL(station);
 }
@@ -165,7 +187,7 @@ default
             llListenRemove(dialog_listen_id);
             if (message == "---")
             {
-            	menuTab = TAB_Home;
+                menuTab = TAB_Home;
                 cur_page = 0;
                 showDialog(id);
             }
@@ -200,7 +222,7 @@ default
                 }
                 else if (menuTab == TAB_Stations)
                 {
-                	integer index = llListFindList(radioNames, [message]);
+                    integer index = llListFindList(radioNames, [message]);
                     if (index>=0)
                     {
                         string station = llList2String(radioStations, index);
@@ -210,10 +232,10 @@ default
                 }
                 else if (menuTab == TAB_Genre)
                 {
-                	integer index = llListFindList(radioGenres, [message]);
+                    integer index = llListFindList(radioGenres, [message]);
                     if (index>=0)
                     {
-	                	readNotecard(message);
+                        readNotecard(message);
                     }
                     menuTab = TAB_Stations;
                     dialogFor = id;
@@ -233,8 +255,8 @@ default
                 if (dialogFor != NULL_KEY)
                 {
                     menuTab = TAB_Stations;
-	                showDialog(dialogFor);
-    	            dialogFor = NULL_KEY;
+                    showDialog(dialogFor);
+                    dialogFor = NULL_KEY;
                 }
                 //llOwnerSay("Read radio station count: " + (string)llGetListLength(radioStations));
             }
@@ -251,11 +273,26 @@ default
                         data = llStringTrim(llGetSubString(data, p + 1, -1), STRING_TRIM);
                     }
 
-                	if (name == "")
+                    if (name == "")
                     {
-                    	name = (string)notecardIndex;
-                    	notecardIndex++;
+                        //* guess the name
+                        list values = llParseString2List(data,["/"], []);
+                        if (llList2String(values, 0) == "http:")
+                        	values = llDeleteSubList(values, 0, 0);
+                        else if (llList2String(values, 0) == "https:")
+                        	values = llDeleteSubList(values, 0, 0);
+
+                        name = llList2String(values, llGetListLength(values) - 1);
+                        if (name == "")
+	                        name = llList2String(values, 0);
+
+                        if (name == "")
+                        {
+                            name = (string)notecardIndex;
+                            notecardIndex++;
+                        }
                     }
+
                     radioNames += name;
                     radioStations += data;
                 }
