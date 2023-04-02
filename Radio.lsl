@@ -4,8 +4,8 @@
 
     @author: Zai Dium
     @version: 1.2
-    @updated: "2022-10-21 16:07:17"
-    @revision: 24
+    @updated: "2023-04-02 16:45:56"
+    @revision: 30
     @localfile: ?defaultpath\Radio\?@name.lsl
     @license: ?
 
@@ -116,7 +116,7 @@ readNotecard(string name)
         notecardName = name + ".list";
         if (llGetInventoryKey(notecardName) != NULL_KEY)
         {
-	        radioGenre = name;
+            radioGenre = name;
             radioNames = [];
             radioStations = [];
             notecardLine = 0;
@@ -129,15 +129,15 @@ readNotecard(string name)
 
 readGenres()
 {
-	radioGenres = [];
+    radioGenres = [];
     integer count = llGetInventoryNumber(INVENTORY_NOTECARD);
     integer index = 0;
     while (index < count) {
-    	string name = llGetInventoryName(INVENTORY_NOTECARD, index);
-	    if (llToLower(llGetSubString(name, -5, -1)) == ".list")
+        string name = llGetInventoryName(INVENTORY_NOTECARD, index);
+        if (llToLower(llGetSubString(name, -5, -1)) == ".list")
         {
-	        name = llGetSubString(name, 0, -6);
-    	    radioGenres += name;
+            name = llGetSubString(name, 0, -6);
+            radioGenres += name;
         }
         index++;
     }
@@ -146,7 +146,7 @@ readGenres()
 reset(){
     readGenres();
     if (radioGenre == "")
-	    radioGenre = llList2String(radioGenres, 0);
+        radioGenre = llList2String(radioGenres, 0);
     readNotecard(radioGenre);
 }
 
@@ -199,8 +199,8 @@ default
             }
             else if (message == "-->")
             {
-                integer max_limit = llGetListLength(getMenuList(id)) / 9;
-                if ((max_limit > 0) && (cur_page < max_limit))
+                integer max_limit = (llGetListLength(getMenuList(id))-1) / 9;
+                if (cur_page < max_limit)
                     cur_page++;
                 showDialog(id);
             }
@@ -278,13 +278,13 @@ default
                         //* guess the name
                         list values = llParseString2List(data,["/"], []);
                         if (llList2String(values, 0) == "http:")
-                        	values = llDeleteSubList(values, 0, 0);
+                            values = llDeleteSubList(values, 0, 0);
                         else if (llList2String(values, 0) == "https:")
-                        	values = llDeleteSubList(values, 0, 0);
+                            values = llDeleteSubList(values, 0, 0);
 
                         name = llList2String(values, llGetListLength(values) - 1);
                         if (name == "")
-	                        name = llList2String(values, 0);
+                            name = llList2String(values, 0);
 
                         if (name == "")
                         {
